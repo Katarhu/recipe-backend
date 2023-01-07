@@ -19,11 +19,6 @@ export class AuthService {
   ) {}
 
   async login(dto: UserCredentialsDto) {
-
-    if( !dto.password || !dto.email ) {
-      throw new HttpException('Not all fields were provided', HttpStatus.BAD_REQUEST);
-    }
-
     const user = await this.userService.getUserByUserEmail(dto.email);
 
     if( !user ) {
@@ -41,17 +36,14 @@ export class AuthService {
     return {
       user: {
         _id: user._id,
+        email: user.email,
         username: user.username,
-        email: user.email
       },
       token
     }
   }
 
   async register(dto: CreateUserDto) {
-    if( !dto.email || !dto.username || !dto.password ) {
-      throw new HttpException('Not all fields were provided', HttpStatus.BAD_REQUEST);
-    }
 
     const isUsernameTaken = await this.userService.getUserByUserName(dto.username);
     const isEmailTaken = await this.userService.getUserByUserEmail(dto.email);
@@ -74,7 +66,7 @@ export class AuthService {
       user: {
         _id: user._id,
         email: user.email,
-        password: user.password
+        username: user.username,
       },
       token
     }
