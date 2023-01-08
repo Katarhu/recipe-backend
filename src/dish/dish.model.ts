@@ -1,12 +1,12 @@
 import mongoose from "mongoose";
+import * as Joi from 'joi';
 
-interface IIngredient {
+export interface IIngredient {
   name: string;
-  count: number;
   unit: string;
 }
 
-interface IStep {
+export interface IStep {
   title: string;
   description: string;
 }
@@ -22,6 +22,7 @@ export interface IDish {
   steps: IStep[];
   servings: number;
   publisher: string;
+  approved: boolean;
 }
 
 const IngredientSchema = new mongoose.Schema<IIngredient>({
@@ -37,14 +38,81 @@ const StepSchema = new mongoose.Schema<IStep>({
 export const DishSchema = new mongoose.Schema<IDish>({
   title: { type: String, required: true },
   url: { type: String, required: true },
-  description: { type: String },
+  description: { type: String, required: true },
   time: { type: Number, required: true },
   price: { type: Number, required: true },
   topics: { type: [String], default: []},
   ingredients: { type: [IngredientSchema], default: []},
   publisher: { type: String, required: true },
   servings: { type: Number, required: true },
-  steps: { type: [StepSchema], default: []}
+  steps: { type: [StepSchema], default: []},
+  approved: { type: Boolean, default: false }
 });
 
 
+const ingredientsSchemaJoi = Joi.object().keys({
+  name: Joi.string()
+    .required(),
+
+  unit: Joi.string()
+    .required()
+});
+
+const stepsSchemaJoi = Joi.object().keys({
+  title: Joi.string()
+    .required(),
+
+  description: Joi.string()
+    .required()
+})
+
+export const dishSchemaJoi = Joi.object({
+  title: Joi.string()
+    .required(),
+
+  url: Joi.string()
+    .required(),
+
+  description: Joi.string()
+    .required(),
+
+  time: Joi.number()
+    .required()
+    .positive()
+    .integer(),
+
+  price: Joi.number()
+    .required()
+    .integer()
+    .positive(),
+
+  topics: Joi.array()
+    .required()
+    .min(1)
+    .items(
+      Joi.string()
+        .required()
+    ),
+
+  ingredients: Joi.array()
+    .required()
+    .min(1)
+    .items(
+      ingredientsSchemaJoi
+    ),
+
+  publisher: Joi.string()
+    .required(),
+
+  servings: Joi.number()
+    .required()
+    .integer()
+    .positive(),
+
+  steps: Joi.array()
+    .required()
+    .min(1)
+    .items(
+      stepsSchemaJoi
+    )
+}).options({allowUnknown: true});
