@@ -3,6 +3,7 @@ import { Body, Controller, Delete, Get, Patch, Post, Put, Req, UseGuards, UsePip
 import { JoiValidationPipe } from "../common/pipes/validation.pipe";
 
 import { CreateDishDto } from "./dto/create-dish.dto";
+import { FilterDishesDto } from "./dto/filter-dishes.dto";
 
 import { DishService } from "./dish.service";
 
@@ -18,10 +19,10 @@ export class DishController {
     private dishService: DishService
   ) {}
 
-  @Get()
+  @Post('/get')
   @UseGuards(JwtAuthGuard)
-  getDishes(@Req() request) {
-    return this.dishService.getDishes(request);
+  getDishes(@Body() filterDishesDto: FilterDishesDto) {
+    return this.dishService.getDishes(filterDishesDto);
   }
 
   @Get('/:id')
@@ -39,8 +40,8 @@ export class DishController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @UsePipes(new JoiValidationPipe(dishSchemaJoi))
-  createDish(@Body() createDishDto: CreateDishDto) {
-    return this.dishService.createDish(createDishDto);
+  createDish(@Req() request, @Body() createDishDto: CreateDishDto) {
+    return this.dishService.createDish(request, createDishDto);
   }
 
   @Put('/:id')

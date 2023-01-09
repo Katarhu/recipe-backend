@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
+
 import * as Joi from 'joi';
+
 
 export interface IIngredient {
   name: string;
@@ -21,19 +23,21 @@ export interface IDish {
   ingredients: IIngredient[];
   steps: IStep[];
   servings: number;
-  publisher: string;
+  publisherId: string;
   approved: boolean;
 }
+
+// SCHEMAS
 
 const IngredientSchema = new mongoose.Schema<IIngredient>({
   name: { type: String, required: true },
   unit: { type: String, required: true}
-});
+}, { _id: false });
 
 const StepSchema = new mongoose.Schema<IStep>({
   title: { type: String, required: true },
   description: { type: String, required: true }
-});
+}, { _id: false });
 
 export const DishSchema = new mongoose.Schema<IDish>({
   title: { type: String, required: true },
@@ -41,14 +45,16 @@ export const DishSchema = new mongoose.Schema<IDish>({
   description: { type: String, required: true },
   time: { type: Number, required: true },
   price: { type: Number, required: true },
-  topics: { type: [String], default: []},
-  ingredients: { type: [IngredientSchema], default: []},
-  publisher: { type: String, required: true },
+  topics: { type: [String], default: [] },
+  ingredients: { type: [IngredientSchema], default: [] },
+  publisherId: { type: String, required: true },
   servings: { type: Number, required: true },
-  steps: { type: [StepSchema], default: []},
+  steps: { type: [StepSchema], default: [] },
   approved: { type: Boolean, default: false }
 });
 
+
+// JOI
 
 const ingredientsSchemaJoi = Joi.object().keys({
   name: Joi.string()

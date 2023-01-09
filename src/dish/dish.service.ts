@@ -1,9 +1,11 @@
-import { InjectModel } from "@nestjs/mongoose";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-
-import { CreateDishDto } from "./dto/create-dish.dto";
-import { IDish } from "./dish.model";
+import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
+
+import { FilterDishesDto } from "./dto/filter-dishes.dto";
+import { CreateDishDto } from "./dto/create-dish.dto";
+
+import { IDish } from "./dish.model";
 
 @Injectable()
 export class DishService {
@@ -12,18 +14,22 @@ export class DishService {
     @InjectModel("Dish") private readonly dishModel: Model<IDish>
   ) {}
 
-  async getDishes(req) {
+  async getDishes(filterDto: FilterDishesDto) {
+    const { skip = 0, limit = Number.MAX_SAFE_INTEGER, customFilter = ''} = filterDto;
 
+    const filterRegex = new RegExp(`^${customFilter}`);
+
+    return this.dishModel.find({ title: filterRegex })
+      .skip(skip)
+      .limit(limit)
   }
 
   async getDishById(req) {
-      const dish = await this.dishModel.findById(req.params.id);
-
-      return dish;
+      return this.dishModel.findById(req.params.id);
   }
 
-  async createDish(dto: CreateDishDto) {
-    const newDish = new this.dishModel(dto);
+  async createDish(req, dto: CreateDishDto) {
+    const newDish = new this.dishModel({ ...dto, publisherId: req.user._id });
 
     await newDish.save();
 
@@ -37,12 +43,17 @@ export class DishService {
 
   async updateDish(req, dto: CreateDishDto) {
     const dish = await this.dishModel.findById(req.params.id);
+    const requestUserId = req.user._id;
 
     if( !dish ) {
       throw new HttpException('There is no dish with such id', HttpStatus.BAD_REQUEST);
     }
 
-    await this.dishModel.findByIdAndUpdate(req.params.id, {...dto});
+    if( dish.publisherId !== requestUserId) {
+      throw new HttpException('This operation is forbidden', HttpStatus.FORBIDDEN);
+    }
+
+    await this.dishModel.findByIdAndUpdate(req.params.id, {...dto, approved: false});
 
     return { message: "Dish was updated successfully" };
   }

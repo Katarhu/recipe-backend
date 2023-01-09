@@ -1,7 +1,10 @@
-import { Module } from '@nestjs/common';
-import { DishService } from './dish.service';
-import { DishController } from './dish.controller';
 import { MongooseModule } from "@nestjs/mongoose";
+import { Module } from '@nestjs/common';
+
+import { DishService } from './dish.service';
+
+import { DishController } from './dish.controller';
+
 import { DishSchema } from "./dish.model";
 
 @Module({

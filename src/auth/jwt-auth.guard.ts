@@ -1,6 +1,8 @@
 import {CanActivate, ExecutionContext, UnauthorizedException} from "@nestjs/common";
-import {Observable} from "rxjs";
+
 import * as jwt from 'jsonwebtoken';
+
+import {Observable} from "rxjs";
 
 export class JwtAuthGuard implements CanActivate {
 

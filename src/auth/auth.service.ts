@@ -1,9 +1,13 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { UserService } from "../user/user.service";
+
+import * as jwt from "jsonwebtoken";
+import * as bcrypt from 'bcryptjs'
+
 import { UserCredentialsDto } from "../user/dto/user-credentials.dto";
 import { CreateUserDto } from "../user/dto/create-user.dto";
-import * as bcrypt from 'bcryptjs'
-import * as jwt from "jsonwebtoken";
+
+import { UserService } from "../user/user.service";
+
 
 interface JWTPayload {
   _id: string;
