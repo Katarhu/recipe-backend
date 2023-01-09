@@ -6,6 +6,7 @@ import { FilterDishesDto } from "./dto/filter-dishes.dto";
 import { CreateDishDto } from "./dto/create-dish.dto";
 
 import { IDish } from "./dish.model";
+import { UserRole } from "../user/user.model";
 
 @Injectable()
 export class DishService {
@@ -63,6 +64,10 @@ export class DishService {
 
     if( !dish ) {
       throw new HttpException('There is no dish with such id', HttpStatus.BAD_REQUEST);
+    }
+
+    if( dish.publisherId !== req.user._id && !(req.user.role !== UserRole.ADMIN)) {
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     }
 
     await this.dishModel.findByIdAndRemove(req.params.id);

@@ -51,7 +51,7 @@ export class DishController {
   }
 
   @Delete('/:id')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard)
   deleteDish(@Req() request) {
     return this.dishService.deleteDish(request);
   }
