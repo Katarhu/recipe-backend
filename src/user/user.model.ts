@@ -1,7 +1,10 @@
 import mongoose from "mongoose";
 import * as Joi from 'joi';
 
-type UserRole = "admin" | "user";
+export enum UserRole {
+  USER="user",
+  ADMIN="admin"
+}
 
 export interface IUser {
   email: string;
@@ -14,7 +17,7 @@ export const UserSchema = new mongoose.Schema<IUser>({
   username: { type: String, required: true},
   password: { type: String, required: true},
   email: { type: String, required: true },
-  role: { type: String, required: true, default: "user" }
+  role: { type: String, required: true, default: UserRole.USER }
 });
 
 // JOI

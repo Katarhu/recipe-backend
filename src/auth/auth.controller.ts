@@ -1,11 +1,14 @@
 import { Body, Controller, Post, UseGuards, Req, UsePipes } from "@nestjs/common";
 
-import { createUserJoi, userCredentialsJoi } from "../user/user.model";
-import { UserCredentialsDto } from "../user/dto/user-credentials.dto";
 import { JoiValidationPipe } from "../common/pipes/validation.pipe";
-import { CreateUserDto } from "../user/dto/create-user.dto";
 import { JwtAuthGuard } from "./jwt-auth.guard";
+
+import { UserCredentialsDto } from "../user/dto/user-credentials.dto";
+import { CreateUserDto } from "../user/dto/create-user.dto";
+
 import { AuthService } from "./auth.service";
+
+import { createUserJoi, userCredentialsJoi } from "../user/user.model";
 
 @Controller('auth')
 export class AuthController {

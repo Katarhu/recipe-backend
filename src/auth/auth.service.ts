@@ -1,14 +1,19 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { UserService } from "../user/user.service";
+
+import * as jwt from "jsonwebtoken";
+import * as bcrypt from 'bcryptjs'
+
 import { UserCredentialsDto } from "../user/dto/user-credentials.dto";
 import { CreateUserDto } from "../user/dto/create-user.dto";
-import * as bcrypt from 'bcryptjs'
-import * as jwt from "jsonwebtoken";
+
+import { UserService } from "../user/user.service";
+
 
 interface JWTPayload {
   _id: string;
   email: string;
   username: string;
+  role: string;
 }
 
 @Injectable()
@@ -31,13 +36,14 @@ export class AuthService {
       throw new HttpException('Username or password is incorrect', HttpStatus.BAD_REQUEST);
     }
 
-    const token = this.createToken({ _id: String(user._id), email: user.email, username: user.username });
+    const token = this.createToken({ _id: String(user._id), email: user.email, username: user.username, role: user.role });
 
     return {
       user: {
         _id: user._id,
         email: user.email,
         username: user.username,
+        role: user.role,
       },
       token
     }
@@ -60,13 +66,14 @@ export class AuthService {
 
     const user = await this.userService.createUser({ username: dto.username, email: dto.email, password: hashedPassword });
 
-    const token = this.createToken({ _id: String(user._id), username: user.username,email: user.email});
+    const token = this.createToken({ _id: String(user._id), username: user.username, email: user.email, role: user.role });
 
     return {
       user: {
         _id: user._id,
         email: user.email,
         username: user.username,
+        role: user.role,
       },
       token
     }
