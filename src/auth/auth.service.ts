@@ -55,7 +55,7 @@ export class AuthService {
     const isEmailTaken = await this.userService.getUserByUserEmail(dto.email);
 
     if( isEmailTaken ) {
-      throw new HttpException('Email is already taken', HttpStatus.BAD_REQUEST);
+      throw new HttpException('Email is already taken', HttpStatus.FORBIDDEN);
     }
 
     if( isUsernameTaken ) {
