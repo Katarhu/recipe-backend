@@ -51,16 +51,16 @@ export class AuthService {
 
   async register(dto: CreateUserDto) {
 
-    const isUsernameTaken = await this.userService.getUserByUserName(dto.username);
+    //const isUsernameTaken = await this.userService.getUserByUserName(dto.username);
     const isEmailTaken = await this.userService.getUserByUserEmail(dto.email);
 
     if( isEmailTaken ) {
       throw new HttpException('Email is already taken', HttpStatus.FORBIDDEN);
     }
 
-    if( isUsernameTaken ) {
-      throw new HttpException('Username is already taken', HttpStatus.BAD_REQUEST);
-    }
+    // if( isUsernameTaken ) {
+    //   throw new HttpException('Username is already taken', HttpStatus.BAD_REQUEST);
+    // }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
