@@ -3,8 +3,11 @@ import mongoose from 'mongoose';
 import * as Joi from 'joi';
 
 export interface IIngredient {
-  name: string;
-  unit: string;
+  name: string
+  unit: string
+  quantity: number
+  price: number
+  mainImg: string
 }
 
 export interface IStep {
@@ -32,6 +35,9 @@ const IngredientSchema = new mongoose.Schema<IIngredient>(
   {
     name: { type: String, required: true },
     unit: { type: String, required: true },
+    quantity: { type: Number, required: true },
+    price: { type: Number, required: true },
+    mainImg: { type: String, required: true },
   },
   { _id: false },
 );
@@ -62,8 +68,10 @@ export const DishSchema = new mongoose.Schema<IDish>({
 
 const ingredientsSchemaJoi = Joi.object().keys({
   name: Joi.string().required(),
-
   unit: Joi.string().required(),
+  quantity: Joi.number().required(),
+  price: Joi.number().required(),
+  mainImg: Joi.string().required(),
 });
 
 const stepsSchemaJoi = Joi.object().keys({
