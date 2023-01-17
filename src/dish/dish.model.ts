@@ -79,7 +79,7 @@ export const dishSchemaJoi = Joi.object({
 
   description: Joi.string().required(),
 
-  time: Joi.number().required().positive().integer(),
+  duration: Joi.number().required().positive().integer(),
 
   price: Joi.number().required().integer().positive(),
 
