@@ -4,7 +4,6 @@ export class CreateDishDto {
   readonly title: string;
   readonly url: string;
   readonly description: string;
-  readonly time: number;
   readonly price: number;
   readonly topics: string[];
   readonly ingredients: IIngredient[];
