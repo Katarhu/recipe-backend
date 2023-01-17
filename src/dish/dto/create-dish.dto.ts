@@ -11,4 +11,5 @@ export class CreateDishDto {
   readonly publisher: string;
   readonly servings: number;
   readonly steps: IStep[];
+  readonly duration: number;
 }
