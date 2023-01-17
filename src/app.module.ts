@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { Module } from '@nestjs/common';
 import { UserModule } from './user/user.module';
 import { DishModule } from './dish/dish.module';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { DishModule } from './dish/dish.module';
     UserModule,
     DishModule,
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [],
 })
 export class AppModule {}

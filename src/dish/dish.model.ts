@@ -1,11 +1,13 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 import * as Joi from 'joi';
 
-
 export interface IIngredient {
-  name: string;
-  unit: string;
+  name: string
+  unit: string
+  quantity: number
+  price: number
+  mainImg: string
 }
 
 export interface IStep {
@@ -17,7 +19,7 @@ export interface IDish {
   title: string;
   url: string;
   description: string;
-  time: number;
+  duration: number;
   price: number;
   topics: string[];
   ingredients: IIngredient[];
@@ -29,96 +31,73 @@ export interface IDish {
 
 // SCHEMAS
 
-const IngredientSchema = new mongoose.Schema<IIngredient>({
-  name: { type: String, required: true },
-  unit: { type: String, required: true}
-}, { _id: false });
+const IngredientSchema = new mongoose.Schema<IIngredient>(
+  {
+    name: { type: String, required: true },
+    unit: { type: String, required: true },
+    quantity: { type: Number, required: true },
+    price: { type: Number, required: true },
+    mainImg: { type: String, required: true },
+  },
+  { _id: false },
+);
 
-const StepSchema = new mongoose.Schema<IStep>({
-  title: { type: String, required: true },
-  description: { type: String, required: true }
-}, { _id: false });
+const StepSchema = new mongoose.Schema<IStep>(
+  {
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+  },
+  { _id: false },
+);
 
 export const DishSchema = new mongoose.Schema<IDish>({
   title: { type: String, required: true },
   url: { type: String, required: true },
   description: { type: String, required: true },
-  time: { type: Number, required: true },
+  duration: { type: Number, required: true },
   price: { type: Number, required: true },
   topics: { type: [String], default: [] },
   ingredients: { type: [IngredientSchema], default: [] },
   publisherId: { type: String, required: true },
   servings: { type: Number, required: true },
   steps: { type: [StepSchema], default: [] },
-  approved: { type: Boolean, default: false }
+  approved: { type: Boolean, default: false },
 });
-
 
 // JOI
 
 const ingredientsSchemaJoi = Joi.object().keys({
-  name: Joi.string()
-    .required(),
-
-  unit: Joi.string()
-    .required()
+  name: Joi.string().required(),
+  unit: Joi.string().required(),
+  quantity: Joi.number().required(),
+  price: Joi.number().required(),
+  mainImg: Joi.string().required(),
 });
 
 const stepsSchemaJoi = Joi.object().keys({
-  title: Joi.string()
-    .required(),
+  title: Joi.string().required(),
 
-  description: Joi.string()
-    .required()
-})
+  description: Joi.string().required(),
+});
 
 export const dishSchemaJoi = Joi.object({
-  title: Joi.string()
-    .required(),
+  title: Joi.string().required(),
 
-  url: Joi.string()
-    .required(),
+  url: Joi.string().required(),
 
-  description: Joi.string()
-    .required(),
+  description: Joi.string().required(),
 
-  time: Joi.number()
-    .required()
-    .positive()
-    .integer(),
+  duration: Joi.number().required().positive().integer(),
 
-  price: Joi.number()
-    .required()
-    .integer()
-    .positive(),
+  price: Joi.number().required().integer().positive(),
 
-  topics: Joi.array()
-    .required()
-    .min(1)
-    .items(
-      Joi.string()
-        .required()
-    ),
+  topics: Joi.array().required().min(1).items(Joi.string().required()),
 
-  ingredients: Joi.array()
-    .required()
-    .min(1)
-    .items(
-      ingredientsSchemaJoi
-    ),
+  ingredients: Joi.array().required().min(1).items(ingredientsSchemaJoi),
 
-  publisher: Joi.string()
-    .required(),
+  publisher: Joi.string().required(),
 
-  servings: Joi.number()
-    .required()
-    .integer()
-    .positive(),
+  servings: Joi.number().required().integer().positive(),
 
-  steps: Joi.array()
-    .required()
-    .min(1)
-    .items(
-      stepsSchemaJoi
-    )
-}).options({allowUnknown: true});
+  steps: Joi.array().required().min(1).items(stepsSchemaJoi),
+}).options({ allowUnknown: true });
