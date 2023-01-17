@@ -20,7 +20,6 @@ export class DishController {
   ) {}
 
   @Post('/get')
-  @UseGuards(JwtAuthGuard)
   getDishes(@Body() filterDishesDto: FilterDishesDto) {
     return this.dishService.getDishes(filterDishesDto);
   }
