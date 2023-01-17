@@ -20,7 +20,17 @@ export class DishService {
 
     const filterRegex = new RegExp(`^${customFilter}`);
 
-    return this.dishModel.find({ title: filterRegex })
+    return this.dishModel.find({ title: filterRegex, approved: true })
+      .skip(skip)
+      .limit(limit)
+  }
+
+  async getUnapprovedDishes(filterDto: FilterDishesDto) {
+    const { skip = 0, limit = Number.MAX_SAFE_INTEGER, customFilter = ''} = filterDto;
+
+    const filterRegex = new RegExp(`^${customFilter}`);
+
+    return this.dishModel.find({ title: filterRegex, approved: false })
       .skip(skip)
       .limit(limit)
   }
