@@ -24,6 +24,12 @@ export class DishController {
     return this.dishService.getDishes(filterDishesDto);
   }
 
+  @Post('/unapproved')
+  @UseGuards(AdminGuard)
+  getUnapprovedDishes(@Body() filterDishesDto) {
+    return this.dishService.getUnapprovedDishes(filterDishesDto);
+  }
+
   @Get('/:id')
   @UseGuards(JwtAuthGuard)
   getDishById(@Req() request) {

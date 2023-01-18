@@ -12,6 +12,10 @@ export class AdminGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
     const req = context.switchToHttp().getRequest();
 
+    if( !req.user ) {
+      throw new HttpException('Forbidden', HttpStatus.UNAUTHORIZED);
+    }
+
     if( req.user.role !== UserRole.ADMIN ) {
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     }
