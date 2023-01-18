@@ -1,31 +1,33 @@
-import {CanActivate, ExecutionContext, UnauthorizedException} from "@nestjs/common";
+import {
+  CanActivate,
+  ExecutionContext,
+  UnauthorizedException,
+} from '@nestjs/common';
 
 import * as jwt from 'jsonwebtoken';
 
-import {Observable} from "rxjs";
+import { Observable } from 'rxjs';
 
 export class JwtAuthGuard implements CanActivate {
+  constructor() {}
 
-  constructor() {
-  }
-
-  canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+  canActivate(
+    context: ExecutionContext,
+  ): boolean | Promise<boolean> | Observable<boolean> {
     const req = context.switchToHttp().getRequest();
 
     try {
       const token = req.headers.authorization.split(' ')[1];
 
-
       if (!token) {
-        throw new UnauthorizedException({message: 'Unauthorized'});
+        throw new UnauthorizedException({ message: 'Unauthorized' });
       }
 
-      req.user = jwt.verify(token, process.env.SECRET_KEY)
+      req.user = jwt.verify(token, process.env.SECRET_KEY);
 
-      return true
-
+      return true;
     } catch (err) {
-      throw new UnauthorizedException({message: 'Unauthorized'});
+      throw new UnauthorizedException({ message: 'Unauthorized' });
     }
   }
 }

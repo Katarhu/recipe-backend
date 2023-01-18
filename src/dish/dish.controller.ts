@@ -1,23 +1,31 @@
-import { Body, Controller, Delete, Get, Patch, Post, Put, Req, UseGuards, UsePipes } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Patch,
+  Post,
+  Put,
+  Req,
+  UseGuards,
+  UsePipes,
+} from '@nestjs/common';
 
-import { JoiValidationPipe } from "../common/pipes/validation.pipe";
+import { JoiValidationPipe } from '../common/pipes/validation.pipe';
 
-import { CreateDishDto } from "./dto/create-dish.dto";
-import { FilterDishesDto } from "./dto/filter-dishes.dto";
+import { CreateDishDto } from './dto/create-dish.dto';
+import { FilterDishesDto } from './dto/filter-dishes.dto';
 
-import { DishService } from "./dish.service";
+import { DishService } from './dish.service';
 
-import { JwtAuthGuard } from "../auth/jwt-auth.guard";
-import { AdminGuard } from "../auth/admin.guard";
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AdminGuard } from '../auth/admin.guard';
 
-import { dishSchemaJoi } from "./dish.model";
+import { dishSchemaJoi } from './dish.model';
 
 @Controller('dishes')
 export class DishController {
-
-  constructor(
-    private dishService: DishService
-  ) {}
+  constructor(private dishService: DishService) {}
 
   @Post('/get')
   getDishes(@Body() filterDishesDto: FilterDishesDto) {
@@ -37,7 +45,7 @@ export class DishController {
   }
 
   @Patch('/:id/approve')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(AdminGuard)
   approveDish(@Req() request) {
     return this.dishService.approveDish(request);
   }
