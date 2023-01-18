@@ -25,6 +25,7 @@ export class DishController {
   }
 
   @Post('/unapproved')
+  @UseGuards(JwtAuthGuard)
   @UseGuards(AdminGuard)
   getUnapprovedDishes(@Body() filterDishesDto) {
     return this.dishService.getUnapprovedDishes(filterDishesDto);
