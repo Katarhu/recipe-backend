@@ -45,7 +45,7 @@ export class DishService {
 
   async getDishById(req) {
     this.log.log(req.params);
-    return this.dishModel.find({ _id: req.params.id, approved: true });
+    return this.dishModel.findOne({ _id: req.params.id, approved: true });
   }
 
   async createDish(req, dto: CreateDishDto) {
