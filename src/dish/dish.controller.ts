@@ -39,7 +39,6 @@ export class DishController {
   }
 
   @Get('/:id')
-  @UseGuards(JwtAuthGuard)
   getDishById(@Req() request) {
     return this.dishService.getDishById(request);
   }
