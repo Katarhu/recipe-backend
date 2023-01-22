@@ -20,10 +20,10 @@ export class DishService {
       customFilter = '',
     } = filterDto;
 
-    const filterRegex = new RegExp(`^${customFilter}`);
+    const keywords = customFilter.split(' ').map((value) => new RegExp(value));
 
     return this.dishModel
-      .find({ title: filterRegex, approved: true })
+      .find({ title: { $in: keywords }, approved: true })
       .skip(skip)
       .limit(limit);
   }
