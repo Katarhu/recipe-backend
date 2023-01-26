@@ -24,16 +24,17 @@ export class DishService {
     const { maxVal, maxDur, minDur, minVal, topics } = config;
     const keywords = customFilter.split(' ').map((value) => new RegExp(value));
 
-    return this.dishModel
-      .find({
-        title: { $in: keywords },
-        approved: true,
-        duration: { $gte: minDur, $lte: maxDur },
-        price: { $gte: minVal, $lte: maxVal },
-        topics: { $all: topics },
-      })
-      .skip(skip)
-      .limit(limit);
+    const filter = {
+      title: { $in: keywords },
+      approved: true,
+      duration: { $gte: minDur, $lte: maxDur },
+      price: { $gte: minVal, $lte: maxVal },
+      topics: { $all: topics },
+    };
+    if (topics.length) {
+      delete filter['topics'];
+    }
+    return this.dishModel.find(filter).skip(skip).limit(limit);
   }
 
   async getUnapprovedDishes(filterDto: FilterDishesDto) {
