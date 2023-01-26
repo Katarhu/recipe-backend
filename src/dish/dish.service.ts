@@ -25,7 +25,7 @@ export class DishService {
     const keywords = customFilter.split(' ').map((value) => new RegExp(value));
 
     const filter = {
-      title: { $in: keywords },
+      title: { $all: keywords },
       approved: true,
       duration: { $gte: minDur, $lte: maxDur },
       price: { $gte: minVal, $lte: maxVal },
