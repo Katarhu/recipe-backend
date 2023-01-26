@@ -31,7 +31,7 @@ export class DishService {
       price: { $gte: minVal, $lte: maxVal },
       topics: { $all: topics },
     };
-    if (topics.length) {
+    if (topics.length > 0) {
       delete filter['topics'];
     }
     return this.dishModel.find(filter).skip(skip).limit(limit);
