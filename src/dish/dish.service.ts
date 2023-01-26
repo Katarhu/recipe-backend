@@ -11,6 +11,7 @@ import { UserRole } from '../user/user.model';
 @Injectable()
 export class DishService {
   log = new Logger('dishservice');
+
   constructor(@InjectModel('Dish') private readonly dishModel: Model<IDish>) {}
 
   async getDishes(filterDto: FilterDishesDto) {
@@ -18,12 +19,19 @@ export class DishService {
       skip = 0,
       limit = Number.MAX_SAFE_INTEGER,
       customFilter = '',
+      config,
     } = filterDto;
-
+    const { maxVal, maxDur, minDur, minVal, topics } = config;
     const keywords = customFilter.split(' ').map((value) => new RegExp(value));
 
     return this.dishModel
-      .find({ title: { $in: keywords }, approved: true })
+      .find({
+        title: { $in: keywords },
+        approved: true,
+        duration: { $gte: minDur, $lte: maxDur },
+        price: { $gte: minVal, $lte: maxVal },
+        topics: { $all: topics },
+      })
       .skip(skip)
       .limit(limit);
   }
@@ -34,11 +42,13 @@ export class DishService {
       limit = Number.MAX_SAFE_INTEGER,
       customFilter = '',
     } = filterDto;
-
     const filterRegex = new RegExp(`^${customFilter}`);
 
     return this.dishModel
-      .find({ title: filterRegex, approved: false })
+      .find({
+        title: filterRegex,
+        approved: false,
+      })
       .skip(skip)
       .limit(limit);
   }
