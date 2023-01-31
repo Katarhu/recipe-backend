@@ -36,9 +36,9 @@ export class DishService {
       delete filter['topics'];
     }
     if (initial) {
-      return {
-        dishes: this.dishModel.find(filter).limit(limit),
-        count: this.dishModel.aggregate([
+      return [
+        this.dishModel.find(filter).limit(limit),
+        this.dishModel.aggregate([
           {
             $match: filter,
           },
@@ -46,9 +46,8 @@ export class DishService {
             $count: 'docs',
           },
         ]),
-      };
+      ];
     }
-
     return this.dishModel.find(filter).skip(skip).limit(limit);
   }
 
