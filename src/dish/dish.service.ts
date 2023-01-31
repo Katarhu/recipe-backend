@@ -40,9 +40,7 @@ export class DishService {
         dishes: this.dishModel.find(filter).limit(limit),
         count: this.dishModel.aggregate([
           {
-            $match: {
-              filter,
-            },
+            $match: filter,
           },
           {
             $count: 'docs',
