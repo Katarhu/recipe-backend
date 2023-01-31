@@ -20,6 +20,7 @@ export class DishService {
       limit = Number.MAX_SAFE_INTEGER,
       customFilter = '',
       config,
+      initial = false,
     } = filterDto;
     const { maxVal, maxDur, minDur, minVal, topics } = config;
     const keywords = customFilter.split(' ').map((value) => new RegExp(value));
@@ -34,6 +35,22 @@ export class DishService {
     if (topics.length === 0) {
       delete filter['topics'];
     }
+    if (initial) {
+      return {
+        dishes: this.dishModel.find(filter).limit(limit),
+        count: this.dishModel.aggregate([
+          {
+            $match: {
+              filter,
+            },
+          },
+          {
+            $count: 'docs',
+          },
+        ]),
+      };
+    }
+
     return this.dishModel.find(filter).skip(skip).limit(limit);
   }
 
