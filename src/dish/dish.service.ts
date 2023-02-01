@@ -32,22 +32,24 @@ export class DishService {
       price: { $gte: minVal, $lte: maxVal },
       topics: { $all: topics },
     };
+
     if (topics.length === 0) {
       delete filter['topics'];
     }
+
     if (initial) {
-      return [
-        this.dishModel.find(filter).limit(limit),
-        this.dishModel.aggregate([
-          {
-            $match: filter,
-          },
-          {
-            $count: 'docs',
-          },
-        ]),
-      ];
+      const dishes = await this.dishModel.find(filter).limit(limit);
+      const count = await this.dishModel.aggregate([
+        {
+          $match: filter,
+        },
+        {
+          $count: 'docs',
+        },
+      ]);
+      return { dishes, count: count[0].docs };
     }
+
     return this.dishModel.find(filter).skip(skip).limit(limit);
   }
 
