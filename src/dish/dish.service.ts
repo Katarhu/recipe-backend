@@ -47,7 +47,7 @@ export class DishService {
           $count: 'docs',
         },
       ]);
-      return { dishes, count: 0 || count[0].docs };
+      return { dishes, count: count[0] ? count[0].docs : 0 };
     }
 
     return this.dishModel.find(filter).skip(skip).limit(limit);
