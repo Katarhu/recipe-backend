@@ -1,42 +1,49 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 
-import { FilterDishesDto } from "./dto/filter-dishes.dto";
-import { CreateDishDto } from "./dto/create-dish.dto";
+import { FilterDishesDto } from './dto/filter-dishes.dto';
+import { CreateDishDto } from './dto/create-dish.dto';
 
-import { IDish } from "./dish.model";
-import { UserRole } from "../user/user.model";
+import { IDish } from './dish.model';
+import { UserRole } from '../user/user.model';
 
 @Injectable()
 export class DishService {
-
-  constructor(
-    @InjectModel("Dish") private readonly dishModel: Model<IDish>
-  ) {}
+  constructor(@InjectModel('Dish') private readonly dishModel: Model<IDish>) {}
 
   async getDishes(filterDto: FilterDishesDto) {
-    const { skip = 0, limit = Number.MAX_SAFE_INTEGER, customFilter = ''} = filterDto;
+    const {
+      skip = 0,
+      limit = Number.MAX_SAFE_INTEGER,
+      customFilter = '',
+    } = filterDto;
 
     const filterRegex = new RegExp(`^${customFilter}`);
 
-    return this.dishModel.find({ title: filterRegex, approved: true })
+    return this.dishModel
+      .find({ title: filterRegex, approved: true })
       .skip(skip)
-      .limit(limit)
+      .limit(limit);
   }
 
   async getUnapprovedDishes(filterDto: FilterDishesDto) {
-    const { skip = 0, limit = Number.MAX_SAFE_INTEGER, customFilter = ''} = filterDto;
+    const {
+      skip = 0,
+      limit = Number.MAX_SAFE_INTEGER,
+      customFilter = '',
+    } = filterDto;
 
     const filterRegex = new RegExp(`^${customFilter}`);
 
-    return this.dishModel.find({ title: filterRegex, approved: false })
+    return this.dishModel
+      .find({ title: filterRegex, approved: false })
       .skip(skip)
-      .limit(limit)
+      .limit(limit);
   }
 
   async getDishById(req) {
-      return this.dishModel.findById(req.params.id);
+    return this.dishModel.findById(req.params.id);
   }
 
   async createDish(req, dto: CreateDishDto) {
@@ -48,41 +55,59 @@ export class DishService {
   }
 
   async approveDish(req) {
-    await this.dishModel.findByIdAndUpdate(req.params.id, { approved: true })
-    return { message: "Dish was approved successfully" };
+    await this.dishModel.findByIdAndUpdate(req.params.id, { approved: true });
+    return { message: 'Dish was approved successfully' };
   }
+
+  async saveDishes() {}
+
+  async deleteDishFromSaved() {}
 
   async updateDish(req, dto: CreateDishDto) {
     const dish = await this.dishModel.findById(req.params.id);
     const requestUserId = req.user._id;
 
-    if( !dish ) {
-      throw new HttpException('There is no dish with such id', HttpStatus.BAD_REQUEST);
+    if (!dish) {
+      throw new HttpException(
+        'There is no dish with such id',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
-    if( dish.publisherId !== requestUserId) {
-      throw new HttpException('This operation is forbidden', HttpStatus.FORBIDDEN);
+    if (dish.publisherId !== requestUserId) {
+      throw new HttpException(
+        'This operation is forbidden',
+        HttpStatus.FORBIDDEN,
+      );
     }
 
-    await this.dishModel.findByIdAndUpdate(req.params.id, {...dto, approved: false});
+    await this.dishModel.findByIdAndUpdate(req.params.id, {
+      ...dto,
+      approved: false,
+    });
 
-    return { message: "Dish was updated successfully" };
+    return { message: 'Dish was updated successfully' };
   }
 
   async deleteDish(req) {
     const dish = await this.dishModel.findById(req.params.id);
 
-    if( !dish ) {
-      throw new HttpException('There is no dish with such id', HttpStatus.BAD_REQUEST);
+    if (!dish) {
+      throw new HttpException(
+        'There is no dish with such id',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
-    if( dish.publisherId !== req.user._id && !(req.user.role !== UserRole.ADMIN)) {
+    if (
+      dish.publisherId !== req.user._id &&
+      !(req.user.role !== UserRole.ADMIN)
+    ) {
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     }
 
     await this.dishModel.findByIdAndRemove(req.params.id);
 
-    return { message: "Dish was deleted successfully" };
+    return { message: 'Dish was deleted successfully' };
   }
-
 }
