@@ -7,10 +7,15 @@ import { CreateDishDto } from './dto/create-dish.dto';
 
 import { IDish } from './dish.model';
 import { UserRole } from '../user/user.model';
+import { SaveDishDto } from './dto/save-dish.dto';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class DishService {
-  constructor(@InjectModel('Dish') private readonly dishModel: Model<IDish>) {}
+  constructor(
+    @InjectModel('Dish') private readonly dishModel: Model<IDish>,
+    private userService: UserService,
+  ) {}
 
   async getDishes(filterDto: FilterDishesDto) {
     const {
@@ -59,9 +64,57 @@ export class DishService {
     return { message: 'Dish was approved successfully' };
   }
 
-  async saveDishes() {}
+  async saveDishes(req, { dishesToSave }: SaveDishDto) {
+    if (!dishesToSave) {
+      throw new HttpException(
+        'Field dishesToSave was not provided',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
-  async deleteDishFromSaved() {}
+    const user = await this.userService.getUserById(req.user._id);
+
+    if (!user) {
+      throw new HttpException(
+        'There is no user with such id',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    user.savedDishes = new Map([...user.savedDishes, ...dishesToSave]);
+
+    user.save();
+
+    return {
+      message: 'Dishes was saved successfully',
+    };
+  }
+
+  async removeDishFromSaved(req) {
+    const user = await this.userService.getUserById(req.user._id);
+
+    if (!user) {
+      throw new HttpException(
+        'There is no user with such id',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    if (!user.savedDishes.has(req.params.id)) {
+      throw new HttpException(
+        'There is no saved dish with such id',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    user.savedDishes.delete(req.params.id);
+
+    user.save();
+
+    return {
+      message: 'Dish was removed from saved',
+    };
+  }
 
   async updateDish(req, dto: CreateDishDto) {
     const dish = await this.dishModel.findById(req.params.id);
