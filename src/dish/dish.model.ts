@@ -3,11 +3,11 @@ import mongoose from 'mongoose';
 import * as Joi from 'joi';
 
 export interface IIngredient {
-  name: string
-  unit: string
-  quantity: number
-  price: number
-  mainImg: string
+  name: string;
+  unit: string;
+  quantity: number;
+  price: number;
+  mainImg: string;
 }
 
 export interface IStep {
