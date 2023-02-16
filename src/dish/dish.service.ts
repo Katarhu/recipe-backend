@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { isValidObjectId } from 'mongoose';
 import { Model } from 'mongoose';
 
 import { FilterDishesDto } from './dto/filter-dishes.dto';
@@ -17,14 +18,12 @@ export class DishService {
     private userService: UserService,
   ) {}
 
-  async getDishes(filterDto: FilterDishesDto) {
-    const {
-      skip = 0,
-      limit = Number.MAX_SAFE_INTEGER,
-      customFilter = '',
-    } = filterDto;
-
-    const filterRegex = new RegExp(`^${customFilter}`);
+  async getDishes({
+    skip = 0,
+    limit = Number.MAX_SAFE_INTEGER,
+    customFilter = '',
+  }: FilterDishesDto) {
+    const filterRegex = new RegExp(customFilter, 'gim');
 
     return this.dishModel
       .find({ title: filterRegex, approved: true })
@@ -32,19 +31,52 @@ export class DishService {
       .limit(limit);
   }
 
-  async getUnapprovedDishes(filterDto: FilterDishesDto) {
-    const {
-      skip = 0,
-      limit = Number.MAX_SAFE_INTEGER,
-      customFilter = '',
-    } = filterDto;
-
-    const filterRegex = new RegExp(`^${customFilter}`);
+  async getUnapprovedDishes({
+    skip = 0,
+    limit = Number.MAX_SAFE_INTEGER,
+    customFilter = '',
+  }: FilterDishesDto) {
+    const filterRegex = new RegExp(customFilter, 'gim');
 
     return this.dishModel
       .find({ title: filterRegex, approved: false })
       .skip(skip)
       .limit(limit);
+  }
+
+  async getUserSavedDishes(
+    req,
+    {
+      skip = 0,
+      limit = Number.MAX_SAFE_INTEGER,
+      customFilter = '',
+    }: FilterDishesDto,
+  ) {
+    const user = await this.userService.getUserById(req.user._id);
+
+    if (!user) {
+      throw new HttpException(
+        'There is no user with such id',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const filterRegex = new RegExp(customFilter, 'gim');
+
+    const dishesId = [...user.savedDishes.keys()];
+
+    const savedDishes = await this.dishModel
+      .find({ _id: { $in: dishesId }, title: filterRegex })
+      .skip(skip)
+      .limit(limit);
+
+    return savedDishes.map((dish) => {
+      const servings = user.savedDishes.get(dish._id.toString());
+
+      dish.servings = servings;
+
+      return dish;
+    });
   }
 
   async getDishById(req) {
@@ -81,9 +113,27 @@ export class DishService {
       );
     }
 
-    user.savedDishes = new Map([...user.savedDishes, ...dishesToSave]);
+    const invalidIds = [];
+
+    const validatedDishesToSave = dishesToSave.filter(([dishId]) => {
+      if (!isValidObjectId(dishId)) {
+        invalidIds.push(dishId);
+        return false;
+      }
+
+      return true;
+    });
+
+    user.savedDishes = new Map([...user.savedDishes, ...validatedDishesToSave]);
 
     user.save();
+
+    if (invalidIds.length !== 0) {
+      return {
+        message: "Dishes was saved successfully, but some id's were invalid",
+        invalidIds,
+      };
+    }
 
     return {
       message: 'Dishes was saved successfully',

@@ -22,7 +22,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AdminGuard } from '../auth/admin.guard';
 
 import { dishSchemaJoi } from './dish.model';
-import { SaveDishDto, saveDishJoi } from "./dto/save-dish.dto";
+import { SaveDishDto, saveDishJoi } from './dto/save-dish.dto';
 
 @Controller('dishes')
 export class DishController {
@@ -33,10 +33,16 @@ export class DishController {
     return this.dishService.getDishes(filterDishesDto);
   }
 
-  @Post('/unapproved')
+  @Post('/get-unapproved')
   @UseGuards(AdminGuard)
   getUnapprovedDishes(@Body() filterDishesDto) {
     return this.dishService.getUnapprovedDishes(filterDishesDto);
+  }
+
+  @Post('/get-user-saved')
+  @UseGuards(JwtAuthGuard)
+  getUserSavedDishes(@Req() request, @Body() filterDishesDto) {
+    return this.dishService.getUserSavedDishes(request, filterDishesDto);
   }
 
   @Get('/:id')
