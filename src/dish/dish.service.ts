@@ -1,51 +1,57 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { HttpException, HttpStatus, Injectable, Logger } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
 
-import { FilterDishesDto } from './dto/filter-dishes.dto';
-import { CreateDishDto } from './dto/create-dish.dto';
+import { FilterDishesDto } from "./dto/filter-dishes.dto";
+import { CreateDishDto } from "./dto/create-dish.dto";
 
-import { IDish } from './dish.model';
-import { UserRole } from '../user/user.model';
+import { IDish } from "./dish.model";
+import { UserRole } from "../user/user.model";
 
 @Injectable()
 export class DishService {
-  log = new Logger('dishservice');
+  log = new Logger("dishservice");
 
-  constructor(@InjectModel('Dish') private readonly dishModel: Model<IDish>) {}
+  constructor(@InjectModel("Dish") private readonly dishModel: Model<IDish>) {
+  }
+
+  async getSaved(arr: { arr: string[] }) {
+    this.log.log(arr);
+    return this.dishModel.find({ _id: { $in: arr.arr } });
+  }
 
   async getDishes(filterDto: FilterDishesDto) {
     const {
       skip = 0,
       limit = Number.MAX_SAFE_INTEGER,
-      customFilter = '',
+      customFilter = "",
       config,
-      initial = false,
+      initial = false
     } = filterDto;
     const { maxVal, maxDur, minDur, minVal, topics } = config;
-    const keywords = customFilter.split(' ').map((value) => new RegExp(value));
+    const keywords = customFilter.split(" ").map((value) => new RegExp(value));
 
     const filter = {
       title: { $all: keywords },
       approved: true,
       duration: { $gte: minDur, $lte: maxDur },
       price: { $gte: minVal, $lte: maxVal },
-      topics: { $all: topics },
+      topics: { $all: topics }
     };
 
     if (topics.length === 0) {
-      delete filter['topics'];
+      delete filter["topics"];
     }
 
     if (initial) {
       const dishes = await this.dishModel.find(filter).limit(limit);
       const count = await this.dishModel.aggregate([
         {
-          $match: filter,
+          $match: filter
         },
         {
-          $count: 'docs',
-        },
+          $count: "docs"
+        }
       ]);
       return { dishes, count: count[0] ? count[0].docs : 0 };
     }
@@ -57,14 +63,14 @@ export class DishService {
     const {
       skip = 0,
       limit = Number.MAX_SAFE_INTEGER,
-      customFilter = '',
+      customFilter = ""
     } = filterDto;
     const filterRegex = new RegExp(`^${customFilter}`);
 
     return this.dishModel
       .find({
         title: filterRegex,
-        approved: false,
+        approved: false
       })
       .skip(skip)
       .limit(limit);
@@ -85,7 +91,7 @@ export class DishService {
 
   async approveDish(req) {
     await this.dishModel.findByIdAndUpdate(req.params.id, { approved: true });
-    return { message: 'Dish was approved successfully' };
+    return { message: "Dish was approved successfully" };
   }
 
   async updateDish(req, dto: CreateDishDto) {
@@ -94,24 +100,24 @@ export class DishService {
 
     if (!dish) {
       throw new HttpException(
-        'There is no dish with such id',
-        HttpStatus.BAD_REQUEST,
+        "There is no dish with such id",
+        HttpStatus.BAD_REQUEST
       );
     }
 
     if (dish.publisherId !== requestUserId) {
       throw new HttpException(
-        'This operation is forbidden',
-        HttpStatus.FORBIDDEN,
+        "This operation is forbidden",
+        HttpStatus.FORBIDDEN
       );
     }
 
     await this.dishModel.findByIdAndUpdate(req.params.id, {
       ...dto,
-      approved: false,
+      approved: false
     });
 
-    return { message: 'Dish was updated successfully' };
+    return { message: "Dish was updated successfully" };
   }
 
   async deleteDish(req) {
@@ -119,8 +125,8 @@ export class DishService {
 
     if (!dish) {
       throw new HttpException(
-        'There is no dish with such id',
-        HttpStatus.BAD_REQUEST,
+        "There is no dish with such id",
+        HttpStatus.BAD_REQUEST
       );
     }
 
@@ -128,11 +134,11 @@ export class DishService {
       dish.publisherId !== req.user._id &&
       !(req.user.role !== UserRole.ADMIN)
     ) {
-      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+      throw new HttpException("Forbidden", HttpStatus.FORBIDDEN);
     }
 
     await this.dishModel.findByIdAndRemove(req.params.id);
 
-    return { message: 'Dish was deleted successfully' };
+    return { message: "Dish was deleted successfully" };
   }
 }
