@@ -1,13 +1,12 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 
-import * as jwt from "jsonwebtoken";
-import * as bcrypt from 'bcryptjs'
+import * as jwt from 'jsonwebtoken';
+import * as bcrypt from 'bcryptjs';
 
-import { UserCredentialsDto } from "../user/dto/user-credentials.dto";
-import { CreateUserDto } from "../user/dto/create-user.dto";
+import { UserCredentialsDto } from '../user/dto/user-credentials.dto';
+import { CreateUserDto } from '../user/dto/create-user.dto';
 
-import { UserService } from "../user/user.service";
-
+import { UserService } from '../user/user.service';
 
 interface JWTPayload {
   _id: string;
@@ -18,25 +17,33 @@ interface JWTPayload {
 
 @Injectable()
 export class AuthService {
-
-  constructor(
-    private userService: UserService
-  ) {}
+  constructor(private userService: UserService) {}
 
   async login(dto: UserCredentialsDto) {
     const user = await this.userService.getUserByUserEmail(dto.email);
 
-    if( !user ) {
-      throw new HttpException('Email or password is incorrect', HttpStatus.BAD_REQUEST);
+    if (!user) {
+      throw new HttpException(
+        'Email or password is incorrect',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
-    const isPasswordCorrect = await bcrypt.compare(dto.password, user.password );
+    const isPasswordCorrect = await bcrypt.compare(dto.password, user.password);
 
-    if( !isPasswordCorrect ) {
-      throw new HttpException('Username or password is incorrect', HttpStatus.BAD_REQUEST);
+    if (!isPasswordCorrect) {
+      throw new HttpException(
+        'Username or password is incorrect',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
-    const token = this.createToken({ _id: String(user._id), email: user.email, username: user.username, role: user.role });
+    const token = this.createToken({
+      _id: String(user._id),
+      email: user.email,
+      username: user.username,
+      role: user.role,
+    });
 
     return {
       user: {
@@ -45,16 +52,15 @@ export class AuthService {
         username: user.username,
         role: user.role,
       },
-      token
-    }
+      token,
+    };
   }
 
   async register(dto: CreateUserDto) {
-
     //const isUsernameTaken = await this.userService.getUserByUserName(dto.username);
     const isEmailTaken = await this.userService.getUserByUserEmail(dto.email);
 
-    if( isEmailTaken ) {
+    if (isEmailTaken) {
       throw new HttpException('Email is already taken', HttpStatus.FORBIDDEN);
     }
 
@@ -64,9 +70,18 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    const user = await this.userService.createUser({ username: dto.username, email: dto.email, password: hashedPassword });
+    const user = await this.userService.createUser({
+      username: dto.username,
+      email: dto.email,
+      password: hashedPassword,
+    });
 
-    const token = this.createToken({ _id: String(user._id), username: user.username, email: user.email, role: user.role });
+    const token = this.createToken({
+      _id: String(user._id),
+      username: user.username,
+      email: user.email,
+      role: user.role,
+    });
 
     return {
       user: {
@@ -75,33 +90,40 @@ export class AuthService {
         username: user.username,
         role: user.role,
       },
-      token
-    }
+      token,
+    };
   }
 
   async auth(req) {
     const user = await this.userService.getUserByUserEmail(req.user.email);
 
-    if( !user ) {
-      throw new HttpException('There is no user with such email', HttpStatus.FORBIDDEN);
+    if (!user) {
+      throw new HttpException(
+        'There is no user with such email',
+        HttpStatus.FORBIDDEN,
+      );
     }
+    const token = this.createToken({
+      _id: String(user._id),
+      email: user.email,
+      username: user.username,
+      role: user.role,
+    });
 
     return {
       user: {
         _id: user._id,
         email: user.email,
-        password: user.password
-      }
-    }
+        password: user.password,
+        role: user.role,
+      },
+      token,
+    };
   }
 
   private createToken(payload: JWTPayload) {
-    return jwt.sign(
-      payload,
-      process.env.SECRET_KEY,
-      {
-        expiresIn: '24h'
-      }
-    )
+    return jwt.sign(payload, process.env.SECRET_KEY, {
+      expiresIn: '24h',
+    });
   }
 }

@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 
@@ -10,33 +10,75 @@ import { UserRole } from "../user/user.model";
 
 @Injectable()
 export class DishService {
+  log = new Logger("dishservice");
 
-  constructor(
-    @InjectModel("Dish") private readonly dishModel: Model<IDish>
-  ) {}
+  constructor(@InjectModel("Dish") private readonly dishModel: Model<IDish>) {
+  }
+
+  async getSaved(arr: { arr: string[] }) {
+    this.log.log(arr);
+    return this.dishModel.find({ _id: { $in: arr.arr } });
+  }
 
   async getDishes(filterDto: FilterDishesDto) {
-    const { skip = 0, limit = Number.MAX_SAFE_INTEGER, customFilter = ''} = filterDto;
+    const {
+      skip = 0,
+      limit = Number.MAX_SAFE_INTEGER,
+      customFilter = "",
+      config,
+      initial = false
+    } = filterDto;
+    const { maxVal, maxDur, minDur, minVal, topics } = config;
+    const keywords = customFilter.split(" ").map((value) => new RegExp(value));
 
-    const filterRegex = new RegExp(`^${customFilter}`);
+    const filter = {
+      title: { $all: keywords },
+      approved: true,
+      duration: { $gte: minDur, $lte: maxDur },
+      price: { $gte: minVal, $lte: maxVal },
+      topics: { $all: topics }
+    };
 
-    return this.dishModel.find({ title: filterRegex, approved: true })
-      .skip(skip)
-      .limit(limit)
+    if (topics.length === 0) {
+      delete filter["topics"];
+    }
+
+    if (initial) {
+      const dishes = await this.dishModel.find(filter).limit(limit);
+      const count = await this.dishModel.aggregate([
+        {
+          $match: filter
+        },
+        {
+          $count: "docs"
+        }
+      ]);
+      return { dishes, count: count[0] ? count[0].docs : 0 };
+    }
+
+    return this.dishModel.find(filter).skip(skip).limit(limit);
   }
 
   async getUnapprovedDishes(filterDto: FilterDishesDto) {
-    const { skip = 0, limit = Number.MAX_SAFE_INTEGER, customFilter = ''} = filterDto;
-
+    const {
+      skip = 0,
+      limit = Number.MAX_SAFE_INTEGER,
+      customFilter = ""
+    } = filterDto;
     const filterRegex = new RegExp(`^${customFilter}`);
 
-    return this.dishModel.find({ title: filterRegex, approved: false })
+    return this.dishModel
+      .find({
+        title: filterRegex,
+        approved: false
+      })
       .skip(skip)
-      .limit(limit)
+      .limit(limit);
   }
 
   async getDishById(req) {
-      return this.dishModel.findById(req.params.id);
+    this.log.log(req.params);
+    return this.dishModel.findOne({ _id: req.params.id, approved: true });
   }
 
   async createDish(req, dto: CreateDishDto) {
@@ -48,7 +90,7 @@ export class DishService {
   }
 
   async approveDish(req) {
-    await this.dishModel.findByIdAndUpdate(req.params.id, { approved: true })
+    await this.dishModel.findByIdAndUpdate(req.params.id, { approved: true });
     return { message: "Dish was approved successfully" };
   }
 
@@ -56,15 +98,24 @@ export class DishService {
     const dish = await this.dishModel.findById(req.params.id);
     const requestUserId = req.user._id;
 
-    if( !dish ) {
-      throw new HttpException('There is no dish with such id', HttpStatus.BAD_REQUEST);
+    if (!dish) {
+      throw new HttpException(
+        "There is no dish with such id",
+        HttpStatus.BAD_REQUEST
+      );
     }
 
-    if( dish.publisherId !== requestUserId) {
-      throw new HttpException('This operation is forbidden', HttpStatus.FORBIDDEN);
+    if (dish.publisherId !== requestUserId) {
+      throw new HttpException(
+        "This operation is forbidden",
+        HttpStatus.FORBIDDEN
+      );
     }
 
-    await this.dishModel.findByIdAndUpdate(req.params.id, {...dto, approved: false});
+    await this.dishModel.findByIdAndUpdate(req.params.id, {
+      ...dto,
+      approved: false
+    });
 
     return { message: "Dish was updated successfully" };
   }
@@ -72,17 +123,22 @@ export class DishService {
   async deleteDish(req) {
     const dish = await this.dishModel.findById(req.params.id);
 
-    if( !dish ) {
-      throw new HttpException('There is no dish with such id', HttpStatus.BAD_REQUEST);
+    if (!dish) {
+      throw new HttpException(
+        "There is no dish with such id",
+        HttpStatus.BAD_REQUEST
+      );
     }
 
-    if( dish.publisherId !== req.user._id && !(req.user.role !== UserRole.ADMIN)) {
-      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    if (
+      dish.publisherId !== req.user._id &&
+      !(req.user.role !== UserRole.ADMIN)
+    ) {
+      throw new HttpException("Forbidden", HttpStatus.FORBIDDEN);
     }
 
     await this.dishModel.findByIdAndRemove(req.params.id);
 
     return { message: "Dish was deleted successfully" };
   }
-
 }
